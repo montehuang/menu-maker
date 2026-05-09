@@ -12,12 +12,24 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "菜单助手",
   description: "基于库存食材的 AI 菜品推荐",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "菜单助手",
+  },
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+    icon: "/icons/icon-192.png",
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover", // fills iPhone notch / Dynamic Island area
+  themeColor: "#3b82f6",
 };
 
 export default function RootLayout({
