@@ -196,6 +196,37 @@ function RecommendPageInner() {
 
   const handleSelect = (rec: MealRecommendation) => setPendingRec(rec);
 
+  const handleUnselect = async (rec: MealRecommendation) => {
+    const res = await fetch("/api/meals/unselect", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ recommendationId: rec.id }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      toast({
+        title: "取消失败",
+        description: data.error,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const markUnselected = (recs: MealRecommendation[]) =>
+      recs.map((r) => (r.id === rec.id ? { ...r, is_selected: false } : r));
+    setLunch(markUnselected);
+    setDinner(markUnselected);
+
+    const inv = await fetch("/api/inventory").then((r) => r.json());
+    setInventory(Array.isArray(inv) ? inv : []);
+
+    toast({
+      title: "已取消",
+      description: `${rec.dish_name} 库存已还原`,
+      variant: "success",
+    });
+  };
+
   const handleConfirmDeduction = async (
     recommendationId: string,
     deductions: { ingredientId: string; quantity: number }[],
@@ -344,6 +375,7 @@ function RecommendPageInner() {
             emoji="🍱"
             recommendations={lunch}
             onSelect={handleSelect}
+            onUnselect={handleUnselect}
             onRegenerate={() => handleRegenerate("lunch")}
             regenerating={regenerating === "lunch"}
           />
@@ -352,6 +384,7 @@ function RecommendPageInner() {
             emoji="🍽️"
             recommendations={dinner}
             onSelect={handleSelect}
+            onUnselect={handleUnselect}
             onRegenerate={() => handleRegenerate("dinner")}
             regenerating={regenerating === "dinner"}
           />
@@ -374,6 +407,7 @@ function MealSection({
   emoji,
   recommendations,
   onSelect,
+  onUnselect,
   onRegenerate,
   regenerating,
 }: {
@@ -381,6 +415,7 @@ function MealSection({
   emoji: string;
   recommendations: MealRecommendation[];
   onSelect: (rec: MealRecommendation) => void;
+  onUnselect: (rec: MealRecommendation) => Promise<void>;
   onRegenerate: () => void;
   regenerating: boolean;
 }) {
@@ -418,6 +453,7 @@ function MealSection({
             key={rec.id}
             recommendation={rec}
             onSelect={onSelect}
+            onUnselect={onUnselect}
             disabled={regenerating}
           />
         ))}

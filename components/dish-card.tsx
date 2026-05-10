@@ -8,6 +8,8 @@ import {
   BookOpen,
   Video,
   CheckCircle2,
+  Loader2,
+  X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,15 +21,27 @@ import { cn } from "@/lib/utils";
 interface DishCardProps {
   recommendation: MealRecommendation;
   onSelect: (recommendation: MealRecommendation) => void;
+  onUnselect: (recommendation: MealRecommendation) => Promise<void>;
   disabled?: boolean;
 }
 
 export function DishCard({
   recommendation,
   onSelect,
+  onUnselect,
   disabled,
 }: DishCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [unselecting, setUnselecting] = useState(false);
+
+  const handleUnselect = async () => {
+    setUnselecting(true);
+    try {
+      await onUnselect(recommendation);
+    } finally {
+      setUnselecting(false);
+    }
+  };
 
   return (
     <Card
@@ -98,8 +112,6 @@ export function DishCard({
                     {recommendation.cooking_steps}
                   </pre>
                 </div>
-
-                {/* Reference links */}
                 {recommendation.reference_links.length > 0 && (
                   <div className="mt-3">
                     <p className="text-xs text-muted-foreground mb-2">
@@ -131,8 +143,23 @@ export function DishCard({
           </>
         )}
 
-        {/* Action */}
-        {!recommendation.is_selected && (
+        {/* Actions */}
+        {recommendation.is_selected ? (
+          <Button
+            size="sm"
+            variant="outline"
+            className="mt-3 w-full text-muted-foreground hover:text-destructive hover:border-destructive"
+            onClick={handleUnselect}
+            disabled={unselecting || disabled}
+          >
+            {unselecting ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <X className="h-3.5 w-3.5" />
+            )}
+            取消选择（库存将还原）
+          </Button>
+        ) : (
           <Button
             size="sm"
             className="mt-3 w-full"
